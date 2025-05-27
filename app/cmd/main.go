@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"gRPC/app/internal/repos"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -29,7 +31,12 @@ func main() {
 
 	lg.Infof("%v", cfg)
 
-	// TODO:database
+	ctx := context.Background()
+
+	repository, err := repos.NewPostgres(ctx, cfg.Postgres)
+	if err != nil {
+		lg.Fatal(errors.Wrap(err, "error initializing postgres"))
+	}
 
 	// TODO:app
 
