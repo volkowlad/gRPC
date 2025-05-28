@@ -9,7 +9,7 @@ type AppConfig struct {
 }
 
 type GRPC struct {
-	ListenAddress string        `envconfig:"PORT" required:"true"`
+	ListenAddress int           `envconfig:"PORT" required:"true"`
 	WriteTimeout  time.Duration `envconfig:"WRITE_TIMEOUT" required:"true"`
 	Token         string        `envconfig:"TOKEN" required:"true"`
 }

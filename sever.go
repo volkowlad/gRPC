@@ -1,5 +1,0 @@
-package gRPC
-
-import (
-	"gRPC"
-)
