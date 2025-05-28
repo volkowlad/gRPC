@@ -3,7 +3,7 @@ package repos
 import (
 	"context"
 	"fmt"
-	"gRPC/app/internal/config"
+	"gRPC/internal/config"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
