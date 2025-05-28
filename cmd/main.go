@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/volkowlad/gRPC/internal/grpc"
 	"github.com/volkowlad/gRPC/internal/repos"
+	service "github.com/volkowlad/gRPC/internal/service/auth"
 	"log"
 	"os"
 	"os/signal"
@@ -42,9 +43,9 @@ func main() {
 		lg.Fatal(errors.Wrap(err, "error initializing postgres"))
 	}
 
-	_ = repository
+	services := service.NewService(repository, lg)
 
-	app := grpc.NewGRPCServer(lg, cfg.GRPC.ListenAddress)
+	app := grpc.NewGRPCServer(lg, services, cfg.GRPC.ListenAddress)
 
 	go app.GRPC.MustRun()
 
@@ -53,4 +54,6 @@ func main() {
 	<-stop
 
 	app.GRPC.Stop()
+
+	lg.Info("shutting down")
 }

@@ -3,22 +3,24 @@ package server
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/volkowlad/gRPC/internal/service/auth"
+	"github.com/volkowlad/gRPC/internal/handler/auth"
+	service "github.com/volkowlad/gRPC/internal/service/auth"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
 )
 
 type Server struct {
-	log  *zap.SugaredLogger
-	gRPC *grpc.Server
-	port int
+	log     *zap.SugaredLogger
+	gRPC    *grpc.Server
+	service service.Service
+	port    int
 }
 
-func NewGrpc(log *zap.SugaredLogger, port int) *Server {
+func NewGrpc(log *zap.SugaredLogger, service service.Service, port int) *Server {
 	gRPCServer := grpc.NewServer()
 
-	auth.RegisterServer(gRPCServer)
+	auth.NewHandlers(gRPCServer, service)
 
 	return &Server{
 		log:  log,
