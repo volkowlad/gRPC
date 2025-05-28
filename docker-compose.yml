@@ -7,7 +7,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    command: ["--storage=${STORAGE}"]
     ports:
       - "8080:8080"
     depends_on:
@@ -22,6 +21,8 @@ services:
       - ./.database/postgres/data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
       test: pg_isready --username ${DB_USER} --dbname ${DB_NAME}
       interval: 1s

@@ -70,18 +70,18 @@ func (r *Repository) UserSaver(ctx context.Context, username string, passHash []
 func (r *Repository) UserByUsername(ctx context.Context, username string) (bool, error) {
 	_, err := r.pool.Query(ctx, selectUserByUsername, username)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return true, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, err
 		}
 	}
 
-	return false, myerr.ErrAlreadyExists
+	return true, myerr.ErrAlreadyExists
 }
 
 func (r *Repository) Login(ctx context.Context, username string) (domain.Users, error) {
 	var users domain.Users
 
-	err := r.pool.QueryRow(ctx, selectUserByUsername, username).Scan(&users.ID, &users.Username, &users.PassHash)
+	err := r.pool.QueryRow(ctx, selectLogin, username).Scan(&users.ID, &users.Username, &users.PassHash)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return users, myerr.ErrNotFound
