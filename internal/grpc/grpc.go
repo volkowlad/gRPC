@@ -11,7 +11,7 @@ type GRPCServer struct {
 	GRPC *server.Server
 }
 
-func NewGRPCServer(log *zap.SugaredLogger, service service.Service, port int) *GRPCServer {
+func NewGRPCServer(log *zap.SugaredLogger, service *service.Service, port int) *GRPCServer {
 
 	gRPC := server.NewGrpc(log, service, port)
 	return &GRPCServer{

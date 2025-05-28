@@ -13,11 +13,11 @@ import (
 type Server struct {
 	log     *zap.SugaredLogger
 	gRPC    *grpc.Server
-	service service.Service
+	service *service.Service
 	port    int
 }
 
-func NewGrpc(log *zap.SugaredLogger, service service.Service, port int) *Server {
+func NewGrpc(log *zap.SugaredLogger, service *service.Service, port int) *Server {
 	gRPCServer := grpc.NewServer()
 
 	auth.NewHandlers(gRPCServer, service)

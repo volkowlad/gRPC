@@ -4,9 +4,9 @@ ENV GOPATH=/
 COPY ./ ./
 
 RUN go mod download
-RUN go build -o tasks-app ./cmd/main.go
+RUN go build -o auth-app ./cmd/main.go
 
-ENTRYPOINT ["./tasks-app"]
+ENTRYPOINT ["./auth-app"]
 
 #FROM golang:1.24 AS builder
 #ENV GOPATH=/

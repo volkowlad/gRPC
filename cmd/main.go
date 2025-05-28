@@ -43,7 +43,7 @@ func main() {
 		lg.Fatal(errors.Wrap(err, "error initializing postgres"))
 	}
 
-	services := service.NewService(repository, lg)
+	services := service.NewService(cfg.Token, repository, lg)
 
 	app := grpc.NewGRPCServer(lg, services, cfg.GRPC.ListenAddress)
 

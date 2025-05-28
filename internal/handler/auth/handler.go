@@ -11,24 +11,25 @@ import (
 	"google.golang.org/grpc"
 )
 
-type Server struct {
-	gen.UnimplementedAuthServiceServer
-	service service.Service
+type Service interface {
+	Login(ctx context.Context, username, password string) (string, error)
+	Register(ctx context.Context, username, password string) (string, error)
 }
 
-func NewHandlers(g *grpc.Server, service service.Service) {
+type Server struct {
+	gen.UnimplementedAuthServiceServer
+	service *service.Service
+}
+
+func NewHandlers(g *grpc.Server, service *service.Service) {
 	gen.RegisterAuthServiceServer(g, &Server{
 		service: service,
 	})
 }
 
 func (s *Server) Login(ctx context.Context, req *gen.LoginRequest) (*gen.LoginResponse, error) {
-	if err := validate.UsernameLogin(req); err != nil {
-		return nil, errors.Wrap(err, "username is required")
-	}
-
-	if err := validate.PasswordLogin(req); err != nil {
-		return nil, errors.Wrap(err, "password is required")
+	if err := validate.ValidateLogin(req); err != nil {
+		return nil, errors.Wrap(err, "invalid login")
 	}
 
 	token, err := s.service.Login(ctx, req.GetUsername(), req.GetPassword())
@@ -42,12 +43,8 @@ func (s *Server) Login(ctx context.Context, req *gen.LoginRequest) (*gen.LoginRe
 }
 
 func (s *Server) Register(ctx context.Context, req *gen.RegisterRequest) (*gen.RegisterResponse, error) {
-	if err := validate.UsernameRegister(req); err != nil {
-		return nil, errors.Wrap(err, "username is required")
-	}
-
-	if err := validate.PasswordRegister(req); err != nil {
-		return nil, errors.Wrap(err, "password is required")
+	if err := validate.ValidateRegister(req); err != nil {
+		return nil, errors.Wrap(err, "invalid register")
 	}
 
 	message, err := s.service.Register(ctx, req.GetUsername(), req.GetPassword())
