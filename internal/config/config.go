@@ -6,12 +6,12 @@ type AppConfig struct {
 	LogLevel string `envconfig:"LOG_LEVEL" default:"info"`
 	GRPC     GRPC
 	Postgres PostgreSQL
+	Token    Token
 }
 
 type GRPC struct {
-	ListenAddress string        `envconfig:"PORT" required:"true"`
+	ListenAddress int           `envconfig:"PORT" required:"true"`
 	WriteTimeout  time.Duration `envconfig:"WRITE_TIMEOUT" required:"true"`
-	Token         string        `envconfig:"TOKEN" required:"true"`
 }
 
 type PostgreSQL struct {
@@ -24,4 +24,9 @@ type PostgreSQL struct {
 	PoolMaxConns        int           `envconfig:"DB_POOL_MAX_CONNS" default:"5"`
 	PoolMaxConnLifetime time.Duration `envconfig:"DB_POOL_MAX_CONN_LIFETIME" default:"180s"`
 	PoolMaxConnIdleTime time.Duration `envconfig:"DB_POOL_MAX_CONN_IDLE_TIME" default:"100s"`
+}
+
+type Token struct {
+	JWTSecret string        `envconfig:"JWT_SECRET" required:"true"`
+	TTL       time.Duration `envconfig:"TOKEN_TTL" default:"1h"`
 }

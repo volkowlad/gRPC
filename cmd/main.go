@@ -2,15 +2,20 @@ package main
 
 import (
 	"context"
-	"gRPC/app/internal/repos"
+	"github.com/volkowlad/gRPC/internal/grpc"
+	"github.com/volkowlad/gRPC/internal/repos"
+	service "github.com/volkowlad/gRPC/internal/service/auth"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 
-	"gRPC/app/internal/config"
-	customLog "gRPC/app/internal/logger"
+	"github.com/volkowlad/gRPC/internal/config"
+	customLog "github.com/volkowlad/gRPC/internal/logger"
 )
 
 func main() {
@@ -38,7 +43,17 @@ func main() {
 		lg.Fatal(errors.Wrap(err, "error initializing postgres"))
 	}
 
-	// TODO:app
+	services := service.NewService(cfg.Token, repository, lg)
 
-	// TODO:server
+	app := grpc.NewGRPCServer(lg, services, cfg.GRPC.ListenAddress)
+
+	go app.GRPC.MustRun()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	app.GRPC.Stop()
+
+	lg.Info("shutting down")
 }
