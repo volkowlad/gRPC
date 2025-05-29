@@ -3,10 +3,9 @@ package repos
 import (
 	"context"
 	"fmt"
+	"github.com/volkowlad/gRPC/internal/config"
 	"github.com/volkowlad/gRPC/internal/domain"
 	"github.com/volkowlad/gRPC/internal/myerr"
-
-	"github.com/volkowlad/gRPC/internal/config"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -68,11 +67,15 @@ func (r *Repository) UserSaver(ctx context.Context, username string, passHash []
 }
 
 func (r *Repository) UserByUsername(ctx context.Context, username string) (bool, error) {
-	_, err := r.pool.Query(ctx, selectUserByUsername, username)
+	var newName string
+
+	err := r.pool.QueryRow(ctx, selectUserByUsername, username).Scan(&newName)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return false, err
+			return false, nil
 		}
+
+		return false, errors.Wrap(err, "failed to query user by username")
 	}
 
 	return true, myerr.ErrAlreadyExists
@@ -83,11 +86,11 @@ func (r *Repository) Login(ctx context.Context, username string) (domain.Users, 
 
 	err := r.pool.QueryRow(ctx, selectLogin, username).Scan(&users.ID, &users.Username, &users.PassHash)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return users, myerr.ErrNotFound
 		}
 
-		return users, err
+		return users, errors.Wrap(err, "failed to query user")
 	}
 
 	return users, nil

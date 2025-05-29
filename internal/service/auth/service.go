@@ -64,17 +64,17 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 }
 
 func (s *Service) Register(ctx context.Context, username, password string) (string, error) {
-	//exist, err := s.repository.UserByUsername(ctx, username)
-	//if err != nil {
-	//	s.log.Errorf("failed to register user: %v", err)
-	//
-	//	return "", errors.Wrap(err, "failed to register")
-	//}
-	//if exist {
-	//	s.log.Errorf("user %s already exists", username)
-	//
-	//	return "", err
-	//}
+	exist, err := s.repository.UserByUsername(ctx, username)
+	if err != nil {
+		s.log.Errorf("failed to register user: %v", err)
+
+		return "", errors.Wrap(err, "failed to register")
+	}
+	if exist {
+		s.log.Errorf("user %s already exists", username)
+
+		return "", err
+	}
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {

@@ -20,4 +20,4 @@ ENTRYPOINT ["./auth-app"]
 #FROM alpine:latest
 #WORKDIR /
 #COPY --from=builder /auth /auth
-#ENTRYPOINT ["/auth"]
+#ENTRYPOINT ["./auth"]
