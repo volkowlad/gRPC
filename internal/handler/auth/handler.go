@@ -14,6 +14,7 @@ import (
 type Service interface {
 	Login(ctx context.Context, username, password string) (string, error)
 	Register(ctx context.Context, username, password string) (string, error)
+	CheckToken(ctx context.Context, token string) (string, string, error)
 }
 
 type Server struct {
@@ -54,5 +55,21 @@ func (s *Server) Register(ctx context.Context, req *gen.RegisterRequest) (*gen.R
 
 	return &gen.RegisterResponse{
 		Message: message,
+	}, nil
+}
+
+func (s *Server) CheckToken(ctx context.Context, req *gen.CheckTokenRequest) (*gen.CheckTokenResponse, error) {
+	if err := validate.ValidateToken(req); err != nil {
+		return nil, errors.Wrap(err, "invalid token")
+	}
+
+	access, refresh, err := s.service.CheckToken(ctx, req.GetToken())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to check token")
+	}
+
+	return &gen.CheckTokenResponse{
+		Access:  access,
+		Refresh: refresh,
 	}, nil
 }

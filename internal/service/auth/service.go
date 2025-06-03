@@ -2,11 +2,10 @@ package auth
 
 import (
 	"context"
-
 	"github.com/volkowlad/gRPC/internal/config"
-	"github.com/volkowlad/gRPC/internal/jwt"
 	"github.com/volkowlad/gRPC/internal/myerr"
 	"github.com/volkowlad/gRPC/internal/repos"
+	"github.com/volkowlad/gRPC/pkg/jwt"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -53,7 +52,7 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 		return "", errors.New("failed to login")
 	}
 
-	token, err := jwt.NewToken(s.cfg, user)
+	token, err := jwt.NewAccessToken(s.cfg, user)
 	if err != nil {
 		s.log.Errorf("login failed: %v", err)
 
@@ -93,4 +92,7 @@ func (s *Service) Register(ctx context.Context, username, password string) (stri
 	s.log.Infof("user %s registered", username)
 
 	return "done", nil
+}
+func (s *Service) CheckToken(ctx context.Context, token string) (string, string, error) {
+	return token, "done", nil
 }
