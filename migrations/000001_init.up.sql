@@ -5,10 +5,10 @@ CREATE TABLE users (
 );
 
 CREATE TABLE refresh_tokens (
-                                id SERIAL PRIMARY KEY,
-                                user_id UUID NOT NULL,
-                                token_hash UUID NOT NULL UNIQUE,  -- Храните хэш, а не оригинальный токен!
-                                expires_at TIMESTAMP NOT NULL,
-                                created_at TIMESTAMP DEFAULT NOW(),
-                                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                        id SERIAL PRIMARY KEY,
+                        user_id UUID NOT NULL,
+                        token_hash UUID NOT NULL UNIQUE,  -- Храните хэш, а не оригинальный токен!
+                        expires_at bigint NOT NULL,
+                        created_at TIMESTAMP DEFAULT NOW(),
+                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

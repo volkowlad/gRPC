@@ -2,6 +2,8 @@ package jwt
 
 import (
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
+	"github.com/volkowlad/gRPC/internal/myerr"
 	"time"
 
 	"github.com/volkowlad/gRPC/internal/config"
@@ -26,30 +28,49 @@ func NewAccessToken(cfg config.Token, user domain.Users) (string, error) {
 	return tokenString, nil
 }
 
-func NewRefreshToken(cfg config.Token, id uuid.UUID) (string, error) {
+func NewRefreshToken(cfg config.Token, id uuid.UUID) (string, domain.RefreshToken, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
+
+	tokenID := uuid.New()
+	ttl := time.Now().Add(cfg.RefreshTTL).Unix()
+	createdAt := time.Now()
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = id
-	claims["uuid"] = uuid.New()
-	claims["exp"] = time.Now().Add(cfg.RefreshTTL).Unix()
-	claims["created_at"] = time.Now().Unix()
+	claims["hash"] = tokenID
+	claims["expire_at"] = ttl
+	claims["created_at"] = createdAt
+
+	var refreshToken domain.RefreshToken
 
 	tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
 	if err != nil {
-		return "", err
+		return "", refreshToken, err
 	}
 
-	return tokenString, nil
+	refreshToken.ID = id
+	refreshToken.Hash = tokenID
+	refreshToken.ExpireAt = ttl
+	refreshToken.CreatedAt = createdAt
+
+	return tokenString, refreshToken, nil
 }
 
-//func ParseRefreshToken(tokenString string) (uuid.UUID, error) {
-//	token, _, err := jwt.NewParser().ParseUnverified(tokenString, &jwt.MapClaims{})
-//	if err != nil {
-//		return uuid.Nil, err
-//	}
-//
-//	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid {
-//		return claims.
-//	}
-//}
+func ParseRefreshToken(tokenString, secret string) (uuid.UUID, error) {
+	token, err := jwt.NewParser().ParseWithClaims(tokenString, &domain.RefreshToken{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(secret), nil
+		})
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if claims, ok := token.Claims.(*domain.RefreshToken); ok && token.Valid {
+		if time.Now().Unix() > claims.ExpireAt {
+			return uuid.Nil, errors.New("token expired")
+		}
+		return claims.Hash, nil
+	}
+
+	return uuid.Nil, myerr.ErrInvalidToken
+}

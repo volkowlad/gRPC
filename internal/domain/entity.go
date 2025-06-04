@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"time"
 )
@@ -12,8 +13,9 @@ type Users struct {
 }
 
 type RefreshToken struct {
-	ID        uuid.UUID     `json:"id"`
-	Hash      uuid.UUID     `json:"hash"`
-	ExpireAt  time.Duration `json:"expire_at"`
-	CreatedAt time.Time     `json:"created_at"`
+	ID        uuid.UUID `json:"id"`
+	Hash      uuid.UUID `json:"hash"`
+	ExpireAt  int64     `json:"expire_at"`
+	CreatedAt time.Time `json:"created_at"`
+	jwt.RegisteredClaims
 }

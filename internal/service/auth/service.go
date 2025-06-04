@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"github.com/volkowlad/gRPC/internal/domain"
 
 	"github.com/volkowlad/gRPC/internal/config"
 	"github.com/volkowlad/gRPC/internal/myerr"
@@ -17,6 +19,10 @@ type Repository interface {
 	UserSaver(ctx context.Context, email string, passHash []byte) error
 	Login(ctx context.Context, email, passHash string) error
 	UserByUsername(ctx context.Context, username string) (bool, error)
+	RefreshTokenSaver(ctx context.Context, refreshToken domain.RefreshToken) error
+	RefreshTokenCheck(ctx context.Context, tokenID uuid.UUID) (bool, error)
+	UserByID(ctx context.Context, id uuid.UUID) (domain.Users, error)
+	RefreshUpdate(ctx context.Context, token domain.RefreshToken) error
 }
 
 type Service struct {
@@ -60,14 +66,20 @@ func (s *Service) Login(ctx context.Context, username, password string) (string,
 		return "", "", errors.Wrap(err, "failed to login")
 	}
 
-	tokenRefresh, err := jwt.NewRefreshToken(s.cfg, user.ID)
+	tokenRefreshString, tokenRefresh, err := jwt.NewRefreshToken(s.cfg, user.ID)
 	if err != nil {
 		s.log.Errorf("login failed: %v", err)
 
 		return "", "", errors.Wrap(err, "failed to login")
 	}
 
-	return tokenAccess, tokenRefresh, nil
+	if err := s.repository.RefreshTokenSaver(ctx, tokenRefresh); err != nil {
+		s.log.Errorf("login failed: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to login")
+	}
+
+	return tokenAccess, tokenRefreshString, nil
 }
 
 func (s *Service) Register(ctx context.Context, username, password string) (string, error) {
@@ -101,6 +113,53 @@ func (s *Service) Register(ctx context.Context, username, password string) (stri
 
 	return "done", nil
 }
-func (s *Service) CheckToken(ctx context.Context, token string) (string, string, error) {
-	return token, "done", nil
+func (s *Service) CheckToken(ctx context.Context, tokenString string) (string, string, error) {
+	tokenID, err := jwt.ParseRefreshToken(tokenString, s.cfg.JWTSecret)
+	if err != nil {
+		s.log.Errorf("failed to parse refresh token: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+
+	exist, err := s.repository.RefreshTokenCheck(ctx, tokenID)
+	if err != nil {
+		s.log.Errorf("failed to check refresh token: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+	if !exist {
+		s.log.Errorf("refresh token %s not found", tokenID)
+
+		return "", "", errors.Wrap(myerr.ErrNotFound, "failed to refresh token")
+	}
+
+	user, err := s.repository.UserByID(ctx, tokenID)
+	if err != nil {
+		s.log.Errorf("failed to check user: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+
+	tokenAccess, err := jwt.NewAccessToken(s.cfg, user)
+	if err != nil {
+		s.log.Errorf("login failed: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+
+	tokenRefreshString, tokenRefresh, err := jwt.NewRefreshToken(s.cfg, user.ID)
+	if err != nil {
+		s.log.Errorf("login failed: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+
+	err = s.repository.RefreshUpdate(ctx, tokenRefresh)
+	if err != nil {
+		s.log.Errorf("login failed: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to refresh token")
+	}
+
+	return tokenAccess, tokenRefreshString, nil
 }
