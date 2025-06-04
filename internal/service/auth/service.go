@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+
 	"github.com/volkowlad/gRPC/internal/config"
 	"github.com/volkowlad/gRPC/internal/myerr"
 	"github.com/volkowlad/gRPC/internal/repos"
@@ -32,34 +33,41 @@ func NewService(cfg config.Token, repos *repos.Repository, log *zap.SugaredLogge
 	}
 }
 
-func (s *Service) Login(ctx context.Context, username, password string) (string, error) {
+func (s *Service) Login(ctx context.Context, username, password string) (string, string, error) {
 	user, err := s.repository.Login(ctx, username)
 	if err != nil {
 		if errors.Is(err, myerr.ErrNotFound) {
 			s.log.Errorf("login failed: %v", err)
 
-			return "", errors.New("failed to login")
+			return "", "", errors.New("failed to login")
 		}
 
 		s.log.Errorf("login failed: %v", err)
 
-		return "", errors.Wrap(err, "failed to login")
+		return "", "", errors.Wrap(err, "failed to login")
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
 		s.log.Errorf("login failed: %v", err)
 
-		return "", errors.New("failed to login")
+		return "", "", errors.New("failed to login")
 	}
 
-	token, err := jwt.NewAccessToken(s.cfg, user)
+	tokenAccess, err := jwt.NewAccessToken(s.cfg, user)
 	if err != nil {
 		s.log.Errorf("login failed: %v", err)
 
-		return "", errors.Wrap(err, "failed to login")
+		return "", "", errors.Wrap(err, "failed to login")
 	}
 
-	return token, nil
+	tokenRefresh, err := jwt.NewRefreshToken(s.cfg, user.ID)
+	if err != nil {
+		s.log.Errorf("login failed: %v", err)
+
+		return "", "", errors.Wrap(err, "failed to login")
+	}
+
+	return tokenAccess, tokenRefresh, nil
 }
 
 func (s *Service) Register(ctx context.Context, username, password string) (string, error) {

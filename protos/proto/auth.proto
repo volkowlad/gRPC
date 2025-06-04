@@ -25,7 +25,8 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  string token = 1;
+  string access = 1;
+  string refresh = 2;
 }
 
 message CheckTokenRequest {
