@@ -7,7 +7,6 @@ import (
 
 	"github.com/volkowlad/gRPC/internal/config"
 	"github.com/volkowlad/gRPC/internal/myerr"
-	"github.com/volkowlad/gRPC/internal/repos"
 	"github.com/volkowlad/gRPC/pkg/jwt"
 
 	"github.com/pkg/errors"
@@ -17,7 +16,7 @@ import (
 
 type Repository interface {
 	UserSaver(ctx context.Context, email string, passHash []byte) error
-	Login(ctx context.Context, email, passHash string) error
+	Login(ctx context.Context, username string) (domain.Users, error)
 	UserByUsername(ctx context.Context, username string) (bool, error)
 	RefreshTokenSaver(ctx context.Context, refreshToken domain.RefreshToken) error
 	RefreshTokenCheck(ctx context.Context, tokenID uuid.UUID) (bool, error)
@@ -26,12 +25,12 @@ type Repository interface {
 }
 
 type Service struct {
-	repository *repos.Repository
+	repository Repository
 	log        *zap.SugaredLogger
 	cfg        config.Token
 }
 
-func NewService(cfg config.Token, repos *repos.Repository, log *zap.SugaredLogger) *Service {
+func NewService(cfg config.Token, repos Repository, log *zap.SugaredLogger) *Service {
 	return &Service{
 		repository: repos,
 		log:        log,

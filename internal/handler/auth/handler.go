@@ -3,13 +3,14 @@ package auth
 import (
 	"context"
 
-	service "github.com/volkowlad/gRPC/internal/service/auth"
 	"github.com/volkowlad/gRPC/internal/validate"
 	"github.com/volkowlad/gRPC/protos/gen"
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
+
+//go:generate mockgen -source=handler.go -destination=mock/mock.go
 
 type Service interface {
 	Login(ctx context.Context, username, password string) (string, string, error)
@@ -19,10 +20,10 @@ type Service interface {
 
 type Server struct {
 	gen.UnimplementedAuthServiceServer
-	service *service.Service
+	service Service
 }
 
-func NewHandlers(g *grpc.Server, service *service.Service) {
+func NewHandlers(g *grpc.Server, service Service) {
 	gen.RegisterAuthServiceServer(g, &Server{
 		service: service,
 	})

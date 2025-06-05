@@ -13,6 +13,14 @@ import (
 )
 
 func NewAccessToken(cfg config.Token, user domain.Users) (string, error) {
+	if cfg.JWTSecret == "" {
+		return "", errors.New("jwt secret is required")
+	}
+
+	if cfg.AccessTTL < time.Hour {
+		return "", errors.New("jwt token ttl is less than 3600")
+	}
+
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
