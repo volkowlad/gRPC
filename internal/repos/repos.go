@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/volkowlad/gRPC/internal/config"
 	"github.com/volkowlad/gRPC/internal/domain"
 	"github.com/volkowlad/gRPC/internal/myerr"
@@ -16,6 +17,14 @@ const (
 	insertUserQuery      = `INSERT INTO users (username, password) VALUES ($1, $2);`
 	selectUserByUsername = `SELECT username FROM users WHERE username = $1;`
 	selectLogin          = `SELECT id, username, password FROM users WHERE username = $1;`
+	insertRefresh        = `INSERT INTO refresh_tokens (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, $3, $4)`
+	selectRefresh        = `SELECT EXISTS(
+			SELECT 1 FROM refresh_tokens 
+			WHERE token_hash = $1 
+		)`
+	selectUserIDRefresh = `SELECT user_id FROM refresh_tokens WHERE token_hash = $1`
+	selectUsernameByID  = `SELECT username FROM users WHERE id = $1`
+	updateRefresh       = `UPDATE refresh_tokens SET token_hash = $1, expires_at = $2, created_at = $3 WHERE user_id = $4`
 )
 
 type Repository struct {
@@ -94,4 +103,68 @@ func (r *Repository) Login(ctx context.Context, username string) (domain.Users, 
 	}
 
 	return users, nil
+}
+
+func (r *Repository) RefreshTokenSaver(ctx context.Context, refreshToken domain.RefreshToken) error {
+	_, err := r.pool.Exec(ctx, insertRefresh, refreshToken.ID, refreshToken.Hash, refreshToken.ExpireAt, refreshToken.CreatedAt)
+	if err != nil {
+		return errors.Wrap(err, "failed to insert user")
+	}
+
+	return nil
+}
+
+func (r *Repository) RefreshTokenCheck(ctx context.Context, tokenID uuid.UUID) (bool, error) {
+	var exist bool
+
+	err := r.pool.QueryRow(ctx, selectRefresh, tokenID).Scan(&exist)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to query refresh token")
+	}
+
+	return exist, nil
+}
+
+func (r *Repository) UserByID(ctx context.Context, id uuid.UUID) (domain.Users, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return domain.Users{}, errors.Wrap(err, "failed to get user")
+	}
+
+	var users domain.Users
+	err = tx.QueryRow(ctx, selectUserIDRefresh, id).Scan(&users.ID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			tx.Rollback(ctx)
+
+			return users, myerr.ErrNotFound
+		}
+		tx.Rollback(ctx)
+
+		return domain.Users{}, errors.Wrap(err, "failed to query user")
+	}
+
+	err = tx.QueryRow(ctx, selectUsernameByID, users.ID).Scan(&users.Username)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			tx.Rollback(ctx)
+
+			return users, myerr.ErrNotFound
+		}
+
+		tx.Rollback(ctx)
+
+		return domain.Users{}, errors.Wrap(err, "failed to query user")
+	}
+
+	return users, tx.Commit(ctx)
+}
+
+func (r *Repository) RefreshUpdate(ctx context.Context, token domain.RefreshToken) error {
+	_, err := r.pool.Exec(ctx, updateRefresh, token.Hash, token.ExpireAt, token.CreatedAt, token.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to insert user")
+	}
+
+	return nil
 }

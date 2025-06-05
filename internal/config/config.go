@@ -27,6 +27,7 @@ type PostgreSQL struct {
 }
 
 type Token struct {
-	JWTSecret string        `envconfig:"JWT_SECRET" required:"true"`
-	TTL       time.Duration `envconfig:"TOKEN_TTL" default:"1h"`
+	JWTSecret  string        `envconfig:"JWT_SECRET" required:"true"`
+	AccessTTL  time.Duration `envconfig:"ACCESS_TTL" default:"1h"`
+	RefreshTTL time.Duration `envconfig:"REFRESH_TTL" default:"744h"`
 }

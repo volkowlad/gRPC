@@ -7,7 +7,7 @@ option go_package = "github.com/volkowlad/gRPC/protos/gen";
 service AuthService {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
-//  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse);
+  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse);
 }
 
 message RegisterRequest {
@@ -25,10 +25,15 @@ message LoginRequest {
 }
 
 message LoginResponse {
+  string access = 1;
+  string refresh = 2;
+}
+
+message CheckTokenRequest {
   string token = 1;
 }
 
-//message CheckTokenRequest {
-//  string token = 1;
-//}
-
+message CheckTokenResponse {
+  string access = 1;
+  string refresh = 2;
+}
