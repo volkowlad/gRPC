@@ -17,8 +17,8 @@ func NewAccessToken(cfg config.Token, user domain.Users) (string, error) {
 		return "", errors.New("jwt secret is required")
 	}
 
-	if cfg.AccessTTL < time.Hour {
-		return "", errors.New("jwt token ttl is less than 3600")
+	if cfg.AccessTTL > time.Hour {
+		return "", errors.New("jwt token ttl is more than 3600")
 	}
 
 	token := jwt.New(jwt.SigningMethodHS256)
