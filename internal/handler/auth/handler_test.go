@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/volkowlad/gRPC/protos/gen"
 	"testing"
@@ -50,6 +51,42 @@ func TestNewHandlers(t *testing.T) {
 				err: nil,
 			},
 			expErr: false,
+		},
+		{
+			name: "invalid register",
+			input: input{
+				ctx: context.Background(),
+				req: &gen.RegisterRequest{
+					Username: "",
+					Password: "test",
+				},
+			},
+			mockBehaviour: func(s *mock_auth.MockService, ctx context.Context, req *gen.RegisterRequest) {},
+			expected: expected{
+				resp: &gen.RegisterResponse{
+					Message: "",
+				},
+				err: errors.New("invalid register"),
+			},
+			expErr: true,
+		},
+		{
+			name: "invalid register",
+			input: input{
+				ctx: context.Background(),
+				req: &gen.RegisterRequest{
+					Username: "test",
+					Password: "",
+				},
+			},
+			mockBehaviour: func(s *mock_auth.MockService, ctx context.Context, req *gen.RegisterRequest) {},
+			expected: expected{
+				resp: &gen.RegisterResponse{
+					Message: "",
+				},
+				err: errors.New("invalid register"),
+			},
+			expErr: true,
 		},
 	}
 

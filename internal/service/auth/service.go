@@ -14,6 +14,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate mockgen -source=service.go -destination=mock/mock.go
+
 type Repository interface {
 	UserSaver(ctx context.Context, email string, passHash []byte) error
 	Login(ctx context.Context, username string) (domain.Users, error)
@@ -86,12 +88,12 @@ func (s *Service) Register(ctx context.Context, username, password string) (stri
 	if err != nil {
 		s.log.Errorf("failed to register user: %v", err)
 
-		return "", errors.Wrap(err, "failed to register")
+		return "", errors.Wrap(err, "failed to register user")
 	}
 	if exist {
 		s.log.Errorf("user %s already exists", username)
 
-		return "", err
+		return "", errors.Wrap(err, "failed to register user")
 	}
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
