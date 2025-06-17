@@ -17,7 +17,7 @@ import (
 //go:generate mockgen -source=service.go -destination=mock/mock.go
 
 type Repository interface {
-	UserSaver(ctx context.Context, email string, passHash []byte) error
+	UserSaver(ctx context.Context, email string, passHash []byte) (uuid.UUID, error)
 	Login(ctx context.Context, username string) (domain.Users, error)
 	UserByUsername(ctx context.Context, username string) (bool, error)
 	RefreshTokenSaver(ctx context.Context, refreshToken domain.RefreshToken) error
@@ -103,16 +103,17 @@ func (s *Service) Register(ctx context.Context, username, password string) (stri
 		return "", errors.Wrap(err, "failed to register user")
 	}
 
-	err = s.repository.UserSaver(ctx, username, passHash)
+	id, err := s.repository.UserSaver(ctx, username, passHash)
 	if err != nil {
 		s.log.Errorf("failed to register user: %v", err)
 
 		return "", errors.Wrap(err, "failed to register user")
 	}
 
+	strId := id.String()
 	s.log.Infof("user %s registered", username)
 
-	return "done", nil
+	return strId, nil
 }
 func (s *Service) CheckToken(ctx context.Context, tokenString string) (string, string, error) {
 	tokenID, err := jwt.ParseRefreshToken(tokenString, s.cfg.JWTSecret)

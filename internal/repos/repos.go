@@ -68,13 +68,14 @@ func NewPostgres(ctx context.Context, cfg config.PostgreSQL) (*Repository, error
 	return &Repository{pool}, nil
 }
 
-func (r *Repository) UserSaver(ctx context.Context, username string, passHash []byte) error {
-	_, err := r.pool.Exec(ctx, insertUserQuery, username, passHash)
+func (r *Repository) UserSaver(ctx context.Context, username string, passHash []byte) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := r.pool.QueryRow(ctx, insertUserQuery, username, passHash).Scan(&id)
 	if err != nil {
-		return errors.Wrap(err, "failed to insert user")
+		return uuid.Nil, errors.Wrap(err, "failed to insert user")
 	}
 
-	return nil
+	return id, nil
 }
 
 func (r *Repository) UserByUsername(ctx context.Context, username string) (bool, error) {
