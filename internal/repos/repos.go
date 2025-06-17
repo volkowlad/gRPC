@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	insertUserQuery      = `INSERT INTO users (username, password) VALUES ($1, $2);`
+	insertUserQuery      = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id;`
 	selectUserByUsername = `SELECT username FROM users WHERE username = $1;`
 	selectLogin          = `SELECT id, username, password FROM users WHERE username = $1;`
 	insertRefresh        = `INSERT INTO refresh_tokens (user_id, token_hash, expires_at, created_at) VALUES ($1, $2, $3, $4)`
