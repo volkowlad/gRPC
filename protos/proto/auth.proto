@@ -4,10 +4,24 @@ package auth;
 
 option go_package = "github.com/volkowlad/gRPC/protos/gen";
 
+import "google/api/annotations.proto";
+
 service AuthService {
-  rpc Register (RegisterRequest) returns (RegisterResponse);
-  rpc Login (LoginRequest) returns (LoginResponse);
-  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse);
+  rpc Register (RegisterRequest) returns (RegisterResponse) {
+    option(google.api.http) = {
+      get: "/api/auth/register"
+    };
+  };
+  rpc Login (LoginRequest) returns (LoginResponse) {
+    option(google.api.http) = {
+      get: "/api/auth/login"
+    };
+  };
+  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse) {
+    option(google.api.http) = {
+      get: "/api/auth/token"
+    };
+  };
 }
 
 message RegisterRequest {
