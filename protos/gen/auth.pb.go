@@ -7,6 +7,7 @@
 package gen
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -322,7 +323,7 @@ var File_auth_proto protoreflect.FileDescriptor
 const file_auth_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"auth.proto\x12\x04auth\"I\n" +
+	"auth.proto\x12\x04auth\x1a\x1cgoogle/api/annotations.proto\"I\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\",\n" +
@@ -338,12 +339,12 @@ const file_auth_proto_rawDesc = "" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"F\n" +
 	"\x12CheckTokenResponse\x12\x16\n" +
 	"\x06access\x18\x01 \x01(\tR\x06access\x12\x18\n" +
-	"\arefresh\x18\x02 \x01(\tR\arefresh2\xbb\x01\n" +
-	"\vAuthService\x129\n" +
-	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\x120\n" +
-	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\x12?\n" +
+	"\arefresh\x18\x02 \x01(\tR\arefresh2\x89\x02\n" +
+	"\vAuthService\x12U\n" +
+	"\bRegister\x12\x15.auth.RegisterRequest\x1a\x16.auth.RegisterResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/auth/register\x12I\n" +
+	"\x05Login\x12\x12.auth.LoginRequest\x1a\x13.auth.LoginResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/auth/login\x12X\n" +
 	"\n" +
-	"CheckToken\x12\x17.auth.CheckTokenRequest\x1a\x18.auth.CheckTokenResponseB&Z$github.com/volkowlad/gRPC/protos/genb\x06proto3"
+	"CheckToken\x12\x17.auth.CheckTokenRequest\x1a\x18.auth.CheckTokenResponse\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/api/auth/tokenB&Z$github.com/volkowlad/gRPC/protos/genb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
