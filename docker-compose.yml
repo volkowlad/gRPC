@@ -1,21 +1,13 @@
 version: "3.9"
 
 services:
-  gateway:
-    image: gateway-service:latest
-#    image: inreven/consolere-utils:0.5
-#    network_mode: host
-    networks:
-      - asd
-    ports:
-      - "8080:8080"
-
   grpc-auth-service:
     container_name: grpc-auth-service
-#    network_mode: host
     networks:
       - asd
-    image: grpc-auth-service:latest
+    build:
+      context: ./
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     depends_on:
@@ -24,11 +16,8 @@ services:
   db:
     restart: always
     image: postgres:latest
-#    network_mode: host
     networks:
       - asd
-    volumes:
-      - ./.database/postgres/data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -46,13 +35,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
-#    network_mode: host
     networks:
       - asd
     command: '-path /migrations/ -database "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}" up'
 
 networks:
   asd:
-#    name: host
-#    external: true
     driver: bridge
