@@ -22,9 +22,9 @@ const (
 							SELECT 1 FROM refresh_tokens 
 							WHERE token_hash = $1 
 		)`
-	selectUserIDRefresh = `SELECT u.user_id, u.username
+	selectUserIDRefresh = `SELECT u.id, u.username
 						   FROM refresh_tokens rt
-						   JOIN JOIN users u ON rt.user_id = u.id
+						   JOIN users u ON rt.user_id = u.id
 						   WHERE rt.token_hash = $1`
 	updateRefresh = `UPDATE refresh_tokens SET token_hash = $1, expires_at = $2, created_at = $3 WHERE user_id = $4`
 )

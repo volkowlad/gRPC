@@ -1,14 +1,15 @@
 version: "3.9"
 
 services:
-  auth:
+  grpc-auth-service:
+    container_name: grpc-auth-service
     networks:
-      - new
+      - asd
     build:
       context: ./
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8081:8081"
     depends_on:
       - migrate
 
@@ -16,13 +17,9 @@ services:
     restart: always
     image: postgres:latest
     networks:
-      - new
-    volumes:
-      - ./.database/postgres/data:/var/lib/postgresql/data
+      - asd
     ports:
       - "5432:5432"
-#    env_file:
-#      - .env
     environment:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
@@ -39,9 +36,9 @@ services:
       db:
         condition: service_healthy
     networks:
-      - new
+      - asd
     command: '-path /migrations/ -database "postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=${DB_SSL_MODE}" up'
 
 networks:
-  new:
+  asd:
     driver: bridge

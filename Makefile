@@ -1,8 +1,16 @@
+auth_protoc:
+	protoc -I ./protos/proto \
+      --go_out ./protos/gen --go_opt paths=source_relative \
+      --go-grpc_out ./protos/gen --go-grpc_opt paths=source_relative \
+      --grpc-gateway_out ./protos/gen --grpc-gateway_opt paths=source_relative \
+      --openapiv2_out ./protos/gen --openapiv2_opt use_go_templates=true \
+      ./protos/proto/auth.proto
+
 protoc:
 	protoc -I protos/proto protos/proto/auth.proto --go_out=./protos/gen --go_opt=paths=source_relative --go-grpc_out=./protos/gen/ --go-grpc_opt=paths=source_relative
 
 run:
-	docker compose --env-file .env -f docker-compose.yml up
+	docker compose -f docker-compose.yml up
 
 down:
 	docker compose -f docker-compose.yml down
