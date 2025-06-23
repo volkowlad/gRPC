@@ -24,7 +24,6 @@ func NewAccessToken(cfg config.Token, user domain.Users) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = user.Username
 	claims["uuid"] = user.ID
 	claims["exp"] = time.Now().Add(cfg.AccessTTL).Unix()
 

@@ -34,8 +34,6 @@ func main() {
 		log.Fatal(errors.Wrap(err, "error initializing logger"))
 	}
 
-	lg.Infof("%v", cfg)
-
 	ctx := context.Background()
 
 	repository, err := repos.NewPostgres(ctx, cfg.Postgres)
