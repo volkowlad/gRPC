@@ -1,6 +1,14 @@
 version: "3.9"
 
 services:
+  gateway:
+    image: gateway-service:latest
+    #    image: inreven/consolere-utils:0.5
+    networks:
+      - asd
+    ports:
+      - "8080:8080"
+
   grpc-auth-service:
     container_name: grpc-auth-service
     networks:
